@@ -5,7 +5,8 @@
     "ecs-fargate-cdk": "bin/ecs-fargate-cdk.js"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
+    "build:app": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
+    "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
