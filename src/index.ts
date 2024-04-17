@@ -1,14 +1,14 @@
-import { Hono } from 'hono';
-import { serve } from '@hono/node-server';
-import * as dotenv from 'dotenv';
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: '.env' });
+dotenv.config({ path: ".env" });
 const app = new Hono();
 const port = 80;
 
-app.get("/",  (c) => {
+app.get("/", (c) => {
   return c.text("Hello World");
-})
+});
 
 serve({
   fetch: app.fetch,
