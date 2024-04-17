@@ -1,14 +1,38 @@
-# Welcome to your CDK TypeScript project
+# Sample app to build ECS on Fargate with AWS CDK
 
-This is a blank project for CDK development with TypeScript.
+## install modules
+```sh
+npm ci
+```
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## application commands
+build
+```sh
+npm run build:app
+```
 
-## Useful commands
+## cdk commands
+compile typescript to js
+```sh
+npm run build
+```
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+watch for changes and compile
+```sh
+npm run watch
+```
+
+deploy this stack to your default AWS account/region
+```sh
+cdk deploy
+```
+
+compare deployed stack with current state
+```sh
+cdk diff
+```
+
+emits the synthesized CloudFormation template
+```sh
+cdk synth
+```
