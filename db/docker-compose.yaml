@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  sample-db:
+    image: postgres:latest
+    platform: linux/amd64
+    container_name: 'sample-db'
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C'
+      POSTGRES_DB: sample_db
+    volumes:
+      - ./pgql_db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '5434:5432'

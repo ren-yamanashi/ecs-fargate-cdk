@@ -25,9 +25,11 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.json ./
+COPY ./prisma/ ./prisma/
 COPY ./src/ ./src/
 
-RUN pnpm run build:app;
+RUN pnpm run prisma:generate; \
+  pnpm run build;
 
 # ------------------------------------------------------------#
 # Run Layer
@@ -37,7 +39,6 @@ FROM node:20.11.0-slim
 WORKDIR /app
 
 ENV PORT=80
-ENV APP_ENV=development
 
 # OpenSSLのインストール
 
@@ -48,6 +49,8 @@ RUN \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+# build ステージから Prisma スキーマをコピー
+COPY --from=build /app/prisma /app/prisma
 # build ステージから node_modules をコピー
 COPY --from=build /app/node_modules /app/node_modules
 # build ステージから dist をコピー

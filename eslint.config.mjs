@@ -11,5 +11,7 @@ export default antfu({
   rules: {
     "no-console": "warn",
     "no-new": "off",
+    "node/prefer-global/process": "off",
+    "curly": "off",
   },
 });
