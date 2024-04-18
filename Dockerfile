@@ -27,7 +27,7 @@ RUN pnpm install --frozen-lockfile
 COPY tsconfig.json ./
 COPY ./src/ ./src/
 
-RUN pnpm run build;
+RUN pnpm run build:app;
 
 # ------------------------------------------------------------#
 # Run Layer
