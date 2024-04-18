@@ -16,15 +16,18 @@ RUN \
   && rm -rf /var/lib/apt/lists/*
 
 # Update npm | Install pnpm
-RUN npm i -g npm@latest;
+RUN npm i -g npm@latest; \
+  # Install pnpm
+  npm install -g pnpm@8.7.6; \
+  pnpm --version;
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.json ./
 COPY ./src/ ./src/
 
-RUN npm run build;
+RUN pnpm run build;
 
 # ------------------------------------------------------------#
 # Run Layer
