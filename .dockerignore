@@ -1,0 +1,9 @@
+.env*
+*.md
+.eslint.concig.mjs
+.gitignore
+docs/
+db/pgql_db/
+.vscode/
+.github/
+cdk.json

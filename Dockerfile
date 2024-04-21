@@ -28,7 +28,8 @@ COPY tsconfig.json ./
 COPY ./prisma/ ./prisma/
 COPY ./src/ ./src/
 
-RUN pnpm run prisma:generate; \
+RUN pnpm run prisma:migrate-deploy; \
+  pnpm run prisma:generate; \
   pnpm run build;
 
 # ------------------------------------------------------------#
