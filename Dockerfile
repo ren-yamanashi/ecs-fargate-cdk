@@ -28,8 +28,7 @@ COPY tsconfig.json ./
 COPY ./prisma/ ./prisma/
 COPY ./src/ ./src/
 
-RUN pnpm run prisma:migrate-deploy; \
-  pnpm run prisma:generate; \
+RUN pnpm run prisma:generate; \
   pnpm run build;
 
 # ------------------------------------------------------------#
@@ -57,7 +56,11 @@ COPY --from=build /app/node_modules /app/node_modules
 # build ステージから dist をコピー
 COPY --from=build /app/dist /app/dist
 
+# エントリポイントスクリプトをコピー
+COPY scripts/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 80
 
 # エントリポイントスクリプトを実行
-CMD ["node", "dist/index.js"]
+ENTRYPOINT ["/app/entrypoint.sh"]
