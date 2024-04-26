@@ -5,17 +5,22 @@
     "ecs-fargate-cdk": "bin/ecs-fargate-cdk.js"
   },
   "scripts": {
-    "build:app": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
+    "docker:build": "docker build -t sample-node-app . ",
+    "docker-up:app": "docker compose -f ./docker-compose.yaml up -d",
+    "docker-up:db": "docker compose -f ./db/docker-compose.yaml up -d",
+    "docker-down:app": "docker compose -f ./docker-compose.yaml down",
+    "docker-down:db": "docker compose -f ./db/docker-compose.yaml down",
+    "prisma:migrate-dev": "dotenv -e .env -- npx prisma migrate dev",
+    "prisma:migrate-deploy": "dotenv -e .env -- npx prisma migrate deploy",
+    "prisma:generate": "prisma generate"
   },
   "volta": {
     "node": "20.11.0"
   },
   "dependencies": {
     "@hono/node-server": "^1.10.0",
+    "@prisma/client": "^5.12.1",
     "aws-cdk-lib": "2.137.0",
     "constructs": "^10.0.0",
     "hono": "^4.2.3",
@@ -23,12 +28,14 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.14.0",
+    "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.5.12",
     "@types/node": "20.11.30",
     "aws-cdk": "2.137.0",
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.2",
     "jest": "^29.7.0",
+    "prisma": "^5.12.1",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "~5.4.3"
