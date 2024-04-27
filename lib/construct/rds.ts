@@ -1,11 +1,12 @@
 import { Construct } from "constructs";
-import * as rds from "aws-cdk-lib/aws-rds";
-import * as ec2 from "aws-cdk-lib/aws-ec2";
+import { Credentials, DatabaseInstance, DatabaseInstanceEngine, DatabaseInstanceReadReplica, NetworkType, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
+import type { SecurityGroup } from "aws-cdk-lib/aws-ec2";
+import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
 import type { Vpc } from "./vpc";
 
 interface RdsProps {
   vpc: Vpc;
-  securityGroup: ec2.SecurityGroup;
+  securityGroup: SecurityGroup;
 }
 
 export class Rds extends Construct {
@@ -13,24 +14,24 @@ export class Rds extends Construct {
     super(scope, id);
 
     // NOTE: パスワードを自動生成してSecrets Managerに保存
-    const rdsCredentials = rds.Credentials.fromGeneratedSecret("cdk_test_user", {
+    const rdsCredentials = Credentials.fromGeneratedSecret("cdk_test_user", {
       secretName: "/cdk-test/rds/",
     });
 
     // NOTE: プライマリインスタンスの作成
-    const rdsPrimaryInstance = new rds.DatabaseInstance(this, "RdsPrimaryInstance", {
-      engine: rds.DatabaseInstanceEngine.postgres({
-        version: rds.PostgresEngineVersion.VER_15_5,
+    const rdsPrimaryInstance = new DatabaseInstance(this, "RdsPrimaryInstance", {
+      engine: DatabaseInstanceEngine.postgres({
+        version: PostgresEngineVersion.VER_15_5,
       }),
-      instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T3,
-        ec2.InstanceSize.MICRO,
+      instanceType: InstanceType.of(
+        InstanceClass.T3,
+        InstanceSize.MICRO,
       ),
       credentials: rdsCredentials,
       databaseName: "cdk_test_db",
       vpc: props.vpc.value,
       vpcSubnets: props.vpc.getRdsIsolatedSubnets(),
-      networkType: rds.NetworkType.IPV4,
+      networkType: NetworkType.IPV4,
       securityGroups: [props.securityGroup],
       availabilityZone: "ap-northeast-1a",
       deleteAutomatedBackups: true,
@@ -38,11 +39,11 @@ export class Rds extends Construct {
     });
 
     // NOTE: リードレプリカの作成
-    new rds.DatabaseInstanceReadReplica(this, "RdsReadReplica", {
+    new DatabaseInstanceReadReplica(this, "RdsReadReplica", {
       sourceDatabaseInstance: rdsPrimaryInstance,
-      instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T3,
-        ec2.InstanceSize.MICRO,
+      instanceType: InstanceType.of(
+        InstanceClass.T3,
+        InstanceSize.MICRO,
       ),
       vpc: props.vpc.value,
       availabilityZone: "ap-northeast-1c",
