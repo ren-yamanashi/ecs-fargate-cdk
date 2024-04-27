@@ -3,7 +3,7 @@ import { CfnOutput, Duration, Stack } from "aws-cdk-lib";
 import type { Construct } from "constructs";
 import { Repository } from "aws-cdk-lib/aws-ecr";
 import { Vpc } from "./construct/vpc";
-import { SecurityGroup } from "./construct/securityGroup";
+import { SecurityGroup } from "./construct/security-group";
 import { Alb } from "./construct/alb";
 import { Rds } from "./construct/rds";
 import { Ecs } from "./construct/ecs";
