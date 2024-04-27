@@ -51,3 +51,7 @@ docker push <accountId>.dkr.ecr.<region>.amazonaws.com/sample-node-app:latest
 `lib`ディレクトリ配下に構築
 
 ### 3. デプロイ
+
+```sh
+cdk deploy
+```

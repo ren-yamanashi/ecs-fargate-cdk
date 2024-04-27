@@ -15,9 +15,10 @@ async function getPosts() {
     return posts;
   }
   catch (error) {
-    console.error(error);
-    await prisma.$disconnect();
-    process.exit(1);
+    console.error({
+      message: "Failed to get posts",
+      error,
+    });
   }
   finally {
     await prisma.$disconnect();
@@ -34,9 +35,10 @@ async function createPost(title: string) {
     return post;
   }
   catch (error) {
-    console.error(error);
-    await prisma.$disconnect();
-    process.exit(1);
+    console.error({
+      message: "Failed to create post",
+      error,
+    });
   }
   finally {
     await prisma.$disconnect();

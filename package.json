@@ -1,19 +1,20 @@
 {
   "name": "ecs-fargate-cdk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "bin": {
-    "ecs-fargate-cdk": "bin/ecs-fargate-cdk.js"
+    "ecs-fargate-cdk": "bin/sample-node-app.js"
   },
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
     "docker:build": "docker build -t sample-node-app . ",
-    "docker-up:app": "docker compose -f ./docker-compose.yaml up -d",
+    "docker-up": "docker compose -f ./docker-compose.yaml up -d",
+    "docker-down": "docker compose -f ./docker-compose.yaml down",
     "docker-up:db": "docker compose -f ./db/docker-compose.yaml up -d",
-    "docker-down:app": "docker compose -f ./docker-compose.yaml down",
     "docker-down:db": "docker compose -f ./db/docker-compose.yaml down",
     "prisma:migrate-dev": "dotenv -e .env -- npx prisma migrate dev",
     "prisma:migrate-deploy": "dotenv -e .env -- npx prisma migrate deploy",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "cdk": "cdk"
   },
   "volta": {
     "node": "20.11.0"

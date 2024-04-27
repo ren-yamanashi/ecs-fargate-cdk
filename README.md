@@ -1,26 +1,22 @@
 # Sample app to build ECS on Fargate with AWS CDK
 
+## setting env
+```sh
+cp default.env .env
+```
+
 ## install modules
 ```sh
-npm ci
+pnpm install --frozen-lock-file
 ```
 
 ## application commands
 build
 ```sh
-npm run build:app
+pnpm run build
 ```
 
 ## cdk commands
-compile typescript to js
-```sh
-npm run build
-```
-
-watch for changes and compile
-```sh
-npm run watch
-```
 
 deploy this stack to your default AWS account/region
 ```sh

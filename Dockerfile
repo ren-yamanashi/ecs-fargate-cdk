@@ -7,7 +7,7 @@ FROM node:20.11.0-slim as build
 
 WORKDIR /app
 
-# OpenSSLのインストール
+# install openssl
 RUN \
   apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -40,8 +40,7 @@ WORKDIR /app
 
 ENV PORT=80
 
-# OpenSSLのインストール
-
+# install openssl
 RUN \
   apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -49,18 +48,18 @@ RUN \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# build ステージから Prisma スキーマをコピー
+# Copy Prisma schema from build stage
 COPY --from=build /app/prisma /app/prisma
-# build ステージから node_modules をコピー
+# Copy node_modules from build stage
 COPY --from=build /app/node_modules /app/node_modules
-# build ステージから dist をコピー
+# Copy dist from build stage
 COPY --from=build /app/dist /app/dist
 
-# エントリポイントスクリプトをコピー
+# Copy entrypoint.sh
 COPY scripts/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 80
 
-# エントリポイントスクリプトを実行
+# execute entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
