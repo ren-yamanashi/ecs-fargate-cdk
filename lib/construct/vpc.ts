@@ -14,7 +14,7 @@ export class Vpc extends Construct {
 
     this.value = new ec2.Vpc(this, "Vpc", {
       vpcName: `${this.resourceName}-vpc`,
-      maxAzs: 2,
+      availabilityZones: ["ap-northeast-1a", "ap-northeast-1c"],
       ipAddresses: ec2.IpAddresses.cidr("192.168.0.0/16"),
       subnetConfiguration: [
         {

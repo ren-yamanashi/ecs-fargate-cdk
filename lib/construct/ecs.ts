@@ -53,10 +53,11 @@ export class Ecs extends Construct {
     this.fargateService = new ecs.FargateService(this, "EcsFargateService", {
       cluster,
       taskDefinition,
-      desiredCount: 1,
+      desiredCount: 2,
       assignPublicIp: true,
       securityGroups: [props.securityGroup],
       vpcSubnets: props.vpc.getEcsIsolatedSubnets(),
+      taskDefinitionRevision: ecs.TaskDefinitionRevision.LATEST,
     });
   }
 }

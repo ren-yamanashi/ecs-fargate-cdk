@@ -17,24 +17,38 @@ export class Rds extends Construct {
       secretName: "/cdk-test/rds/",
     });
 
-    new rds.DatabaseCluster(this, "RdsCluster", {
-      engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_15_5,
+    // NOTE: プライマリインスタンスの作成
+    const rdsPrimaryInstance = new rds.DatabaseInstance(this, "RdsPrimaryInstance", {
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_15_5,
       }),
-      writer: rds.ClusterInstance.provisioned("Instance1", {
-        instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.T3,
-          ec2.InstanceSize.MEDIUM,
-        ),
-        publiclyAccessible: false,
-        instanceIdentifier: "db-instance1",
-      }),
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T3,
+        ec2.InstanceSize.MICRO,
+      ),
       credentials: rdsCredentials,
-      defaultDatabaseName: "cdk_test_db",
+      databaseName: "cdk_test_db",
       vpc: props.vpc.value,
       vpcSubnets: props.vpc.getRdsIsolatedSubnets(),
       networkType: rds.NetworkType.IPV4,
       securityGroups: [props.securityGroup],
+      availabilityZone: "ap-northeast-1a",
+      deleteAutomatedBackups: true,
+      autoMinorVersionUpgrade: false,
+    });
+
+    // NOTE: リードレプリカの作成
+    new rds.DatabaseInstanceReadReplica(this, "RdsReadReplica", {
+      sourceDatabaseInstance: rdsPrimaryInstance,
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T3,
+        ec2.InstanceSize.MICRO,
+      ),
+      vpc: props.vpc.value,
+      availabilityZone: "ap-northeast-1c",
+      vpcSubnets: props.vpc.getRdsIsolatedSubnets(),
+      deleteAutomatedBackups: true,
+      autoMinorVersionUpgrade: false,
     });
   }
 }
