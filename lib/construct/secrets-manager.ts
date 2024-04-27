@@ -1,5 +1,5 @@
 import { Construct } from "constructs";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 
 export class SecretsManager extends Construct {
   constructor(scope: Construct, id: string) {
@@ -12,7 +12,7 @@ export class SecretsManager extends Construct {
       throw new Error("Failed to get SECRET_MANAGER_ARN");
     }
 
-    const secret = secretsmanager.Secret.fromSecretAttributes(this, "SecretStrings", {
+    const secret = Secret.fromSecretAttributes(this, "SecretStrings", {
       secretCompleteArn,
     });
 

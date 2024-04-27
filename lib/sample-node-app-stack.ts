@@ -1,20 +1,20 @@
 import type { StackProps } from "aws-cdk-lib";
 import { CfnOutput, Duration, Stack } from "aws-cdk-lib";
 import type { Construct } from "constructs";
-import * as ecr from "aws-cdk-lib/aws-ecr";
+import { Repository } from "aws-cdk-lib/aws-ecr";
 import { Vpc } from "./construct/vpc";
 import { SecurityGroup } from "./construct/securityGroup";
 import { Alb } from "./construct/alb";
 import { Rds } from "./construct/rds";
 import { Ecs } from "./construct/ecs";
-import { SecretsManager } from "./construct/secretsManager";
+import { SecretsManager } from "./construct/secrets-manager";
 
 export class SampleNodeAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps, readonly resourceName = "sample-node-app") {
     super(scope, id, props);
 
     // ECR
-    const repository = ecr.Repository.fromRepositoryName(
+    const repository = Repository.fromRepositoryName(
       this,
       "EcrRepository",
       resourceName,
