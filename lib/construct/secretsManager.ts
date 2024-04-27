@@ -9,7 +9,7 @@ export class SecretsManager extends Construct {
   public getSecretValue<T extends [string, ...string[]]>(secretName: string, secretKeys: T): { [key in T[number]]: string } {
     const secret = secretsmanager.Secret.fromSecretAttributes(this, "SecretStrings", {
       // TODO: arnを環境変数から取得するようにする
-      secretCompleteArn: `arn:aws:secretsmanager:ap-northeast-1:<accountId>:secret:/${secretName}-<random-value>`,
+      secretCompleteArn: `arn:aws:secretsmanager:<region>:<accountId>:secret:/${secretName}-<random-value>`,
     });
 
     return secretKeys.reduce((acc, key) => {
