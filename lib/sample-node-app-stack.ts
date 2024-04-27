@@ -13,80 +13,47 @@ export class SampleNodeAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps, readonly resourceName = "sample-node-app") {
     super(scope, id, props);
 
-    /**
-     *
-     * ECR
-     *
-     */
+    // ECR
     const repository = ecr.Repository.fromRepositoryName(
       this,
       "EcrRepository",
       resourceName,
     );
 
-    /**
-     *
-     * VPC
-     *
-     */
+    // VPC
     const vpc = new Vpc(this, "Vpc", resourceName);
 
-    /**
-     *
-     * Security Group
-     *
-     */
-    const securityGroup = new SecurityGroup(this, "SecurityGroup", {
+    // Security Group
+    const { albSecurityGroup, ecsSecurityGroup, rdsSecurityGroup } = new SecurityGroup(this, "SecurityGroup", {
       vpc,
       resourceName,
     });
 
-    /**
-     *
-     * Application Load Balancer
-     *
-     */
+    // ALB
     const alb = new Alb(this, "Alb", {
       vpc,
       resourceName,
-      securityGroup: securityGroup.albSecurityGroup,
+      securityGroup: albSecurityGroup,
     });
 
-    // NOTE: 出力としてロードバランサーのDNS名を出力
-    new CfnOutput(this, "LoadBalancerDns", {
-      value: alb.value.loadBalancerDnsName,
-    });
-
-    /**
-     *
-     * RDS
-     *
-     */
+    // RDS
     new Rds(this, "Rds", {
       vpc,
-      securityGroup: securityGroup.rdsSecurityGroup,
+      securityGroup: rdsSecurityGroup,
     });
 
-    /**
-     *
-     * Secrets Manager
-     *
-     */
+    // Secrets Manager
     const secretsManager = new SecretsManager(this, "SecretsManager");
     const keys: ["username", "password", "host", "port", "dbname"] = ["username", "password", "host", "port", "dbname"] as const;
     const { username, password, host, port, dbname } = secretsManager.getSecretValue(keys);
     const databaseUrl = `postgresql://${username}:${password}@${host}:${port}/${dbname}`;
 
-    /**
-     *
-     * ECS on Fargate
-     *
-     */
+    // ECS(Fargate)
     const ecs = new Ecs(this, "EcsFargate", {
       vpc,
       resourceName,
       ecrRepository: repository,
-      securityGroup: securityGroup.ecsSecurityGroup,
+      securityGroup: ecsSecurityGroup,
       env: {
         databaseUrl,
       },
@@ -100,6 +67,11 @@ export class SampleNodeAppStack extends Stack {
         path: "/",
         interval: Duration.minutes(1),
       },
+    });
+
+    // NOTE: 出力としてロードバランサーのDNS名を出力
+    new CfnOutput(this, "LoadBalancerDns", {
+      value: alb.value.loadBalancerDnsName,
     });
   }
 }
