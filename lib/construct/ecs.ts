@@ -4,7 +4,6 @@ import type * as ecr from "aws-cdk-lib/aws-ecr";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type * as ec2 from "aws-cdk-lib/aws-ec2";
 import type { Vpc } from "./vpc";
-import type { SecretsManager } from "./secretsManager";
 
 interface EcsProps {
   vpc: Vpc;
