@@ -6,10 +6,14 @@ export class SecretsManager extends Construct {
     super(scope, id);
   }
 
-  public getSecretValue<T extends [string, ...string[]]>(secretName: string, secretKeys: T): { [key in T[number]]: string } {
+  public getSecretValue<T extends [string, ...string[]]>(secretKeys: T): { [key in T[number]]: string } {
+    const secretCompleteArn = process.env.SECRET_MANAGER_ARN;
+    if (!secretCompleteArn) {
+      throw new Error("Failed to get SECRET_MANAGER_ARN");
+    }
+
     const secret = secretsmanager.Secret.fromSecretAttributes(this, "SecretStrings", {
-      // TODO: arnを環境変数から取得するようにする
-      secretCompleteArn: `arn:aws:secretsmanager:<region>:<accountId>:secret:/${secretName}-<random-value>`,
+      secretCompleteArn,
     });
 
     return secretKeys.reduce((acc, key) => {

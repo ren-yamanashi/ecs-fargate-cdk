@@ -4,16 +4,16 @@ import type * as ecr from "aws-cdk-lib/aws-ecr";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type * as ec2 from "aws-cdk-lib/aws-ec2";
 import type { Vpc } from "./vpc";
-import type { Rds } from "./rds";
 import type { SecretsManager } from "./secretsManager";
 
 interface EcsProps {
   vpc: Vpc;
   resourceName: string;
   ecrRepository: ecr.IRepository;
-  rds: Rds;
-  ecsSecurityGroup: ec2.SecurityGroup;
-  secretsManager: SecretsManager;
+  securityGroup: ec2.SecurityGroup;
+  env: {
+    databaseUrl: string;
+  };
 }
 
 export class Ecs extends Construct {
@@ -40,7 +40,7 @@ export class Ecs extends Construct {
       image: ecs.ContainerImage.fromEcrRepository(props.ecrRepository),
       portMappings: [{ containerPort: 80, hostPort: 80 }],
       environment: {
-        DATABASE_URL: this.getDatabaseUrl(props.rds.secretName, props.secretsManager),
+        DATABASE_URL: props.env.databaseUrl,
       },
       logging: new ecs.AwsLogDriver(
         {
@@ -56,14 +56,8 @@ export class Ecs extends Construct {
       taskDefinition,
       desiredCount: 1,
       assignPublicIp: true,
-      securityGroups: [props.ecsSecurityGroup],
+      securityGroups: [props.securityGroup],
       vpcSubnets: props.vpc.getEcsIsolatedSubnets(),
     });
-  }
-
-  private getDatabaseUrl(secretName: string, secretsManager: SecretsManager): string {
-    const keys: ["username", "password", "host", "port", "dbname"] = ["username", "password", "host", "port", "dbname"];
-    const { username, password, host, port, dbname } = secretsManager.getSecretValue<typeof keys>(secretName, keys);
-    return `postgresql://${username}:${password}@${host}:${port}/${dbname}`;
   }
 }

@@ -1,13 +1,12 @@
 import { Construct } from "constructs";
 import * as elb from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import type * as ec2 from "aws-cdk-lib/aws-ec2";
-import { CfnOutput } from "aws-cdk-lib";
 import type { Vpc } from "./vpc";
 
 interface AlbProps {
   vpc: Vpc;
   resourceName: string;
-  albSecurityGroup: ec2.SecurityGroup;
+  securityGroup: ec2.SecurityGroup;
 }
 
 export class Alb extends Construct {
@@ -16,6 +15,7 @@ export class Alb extends Construct {
 
   constructor(scope: Construct, id: string, props: AlbProps) {
     super(scope, id);
+
     // NOTE: ターゲットグループの作成
     const targetGroup = new elb.ApplicationTargetGroup(this, "AlbTargetGroup", {
       targetGroupName: `${props.resourceName}-alb-tg`,
@@ -35,7 +35,7 @@ export class Alb extends Construct {
       loadBalancerName: `${props.resourceName}-alb`,
       vpc: props.vpc.value,
       internetFacing: true,
-      securityGroup: props.albSecurityGroup,
+      securityGroup: props.securityGroup,
       vpcSubnets: props.vpc.getPublicSubnets(),
     });
 

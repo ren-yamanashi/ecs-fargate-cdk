@@ -10,10 +10,8 @@ import { Ecs } from "./construct/ecs";
 import { SecretsManager } from "./construct/secretsManager";
 
 export class SampleNodeAppStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props?: StackProps, readonly resourceName = "sample-node-app") {
     super(scope, id, props);
-
-    const resourceName = "sample-node-app";
 
     /**
      *
@@ -51,7 +49,7 @@ export class SampleNodeAppStack extends Stack {
     const alb = new Alb(this, "Alb", {
       vpc,
       resourceName,
-      albSecurityGroup: securityGroup.albSecurityGroup,
+      securityGroup: securityGroup.albSecurityGroup,
     });
 
     // NOTE: 出力としてロードバランサーのDNS名を出力
@@ -64,9 +62,9 @@ export class SampleNodeAppStack extends Stack {
      * RDS
      *
      */
-    const rds = new Rds(this, "Rds", {
+    new Rds(this, "Rds", {
       vpc,
-      rdsSecurityGroup: securityGroup.rdsSecurityGroup,
+      securityGroup: securityGroup.rdsSecurityGroup,
     });
 
     /**
@@ -75,6 +73,9 @@ export class SampleNodeAppStack extends Stack {
      *
      */
     const secretsManager = new SecretsManager(this, "SecretsManager");
+    const keys: ["username", "password", "host", "port", "dbname"] = ["username", "password", "host", "port", "dbname"] as const;
+    const { username, password, host, port, dbname } = secretsManager.getSecretValue(keys);
+    const databaseUrl = `postgresql://${username}:${password}@${host}:${port}/${dbname}`;
 
     /**
      *
@@ -85,9 +86,10 @@ export class SampleNodeAppStack extends Stack {
       vpc,
       resourceName,
       ecrRepository: repository,
-      rds,
-      ecsSecurityGroup: securityGroup.ecsSecurityGroup,
-      secretsManager,
+      securityGroup: securityGroup.ecsSecurityGroup,
+      env: {
+        databaseUrl,
+      },
     });
 
     // NOTE: ターゲットグループにタスクを追加

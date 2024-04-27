@@ -4,13 +4,11 @@ import { Construct } from "constructs";
 export class Vpc extends Construct {
   // NOTE: 別スタックから参照できるようにする
   public readonly value: ec2.Vpc;
-  private readonly resourceName: string;
   private readonly ecsIsolatedSubnetName: string;
   private readonly rdsIsolatedSubnetName: string;
 
-  constructor(scope: Construct, id: string, resourceName: string) {
+  constructor(scope: Construct, id: string, private readonly resourceName: string) {
     super(scope, id);
-    this.resourceName = resourceName;
     this.ecsIsolatedSubnetName = `${this.resourceName}-ecs-isolated`;
     this.rdsIsolatedSubnetName = `${this.resourceName}-rds-isolated`;
 

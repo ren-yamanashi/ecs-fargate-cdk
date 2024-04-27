@@ -6,21 +6,16 @@ import type { Vpc } from "./vpc";
 
 interface RdsProps {
   vpc: Vpc;
-  rdsSecurityGroup: ec2.SecurityGroup;
+  securityGroup: ec2.SecurityGroup;
 }
 
 export class Rds extends Construct {
-  public readonly password: string;
-  public readonly dbUser = "cdk_test_user";
-  public readonly dbName = "cdk_test_db";
-  public readonly secretName = "/cdk-test/rds/";
-
   constructor(scope: Construct, id: string, props: RdsProps) {
     super(scope, id);
 
     // NOTE: パスワードを自動生成してSecrets Managerに保存
-    const rdsCredentials = rds.Credentials.fromGeneratedSecret(this.dbUser, {
-      secretName: this.secretName,
+    const rdsCredentials = rds.Credentials.fromGeneratedSecret("cdk_test_user", {
+      secretName: "/cdk-test/rds/",
     });
 
     new rds.DatabaseCluster(this, "RdsCluster", {
@@ -36,11 +31,11 @@ export class Rds extends Construct {
         instanceIdentifier: "db-instance1",
       }),
       credentials: rdsCredentials,
-      defaultDatabaseName: this.dbName,
+      defaultDatabaseName: "cdk_test_db",
       vpc: props.vpc.value,
       vpcSubnets: props.vpc.getRdsIsolatedSubnets(),
       networkType: rds.NetworkType.IPV4,
-      securityGroups: [props.rdsSecurityGroup],
+      securityGroups: [props.securityGroup],
     });
   }
 }
