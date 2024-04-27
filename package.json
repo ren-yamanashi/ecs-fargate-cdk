@@ -1,8 +1,8 @@
 {
   "name": "ecs-fargate-cdk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "bin": {
-    "ecs-fargate-cdk": "bin/ecs-fargate-cdk.js"
+    "ecs-fargate-cdk": "bin/sample-node-app.js"
   },
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
