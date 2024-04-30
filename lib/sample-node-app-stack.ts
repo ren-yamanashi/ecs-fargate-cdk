@@ -43,9 +43,13 @@ export class SampleNodeAppStack extends Stack {
     });
 
     // Secrets Manager
+    const secretManagerArn = process.env.RDS_SECRET_MANAGER_ARN;
+    if (!secretManagerArn) {
+      throw new Error("Failed to get SECRET_MANAGER_ARN");
+    }
     const secretsManager = new SecretsManager(this, "SecretsManager");
     const keys: ["username", "password", "host", "port", "dbname"] = ["username", "password", "host", "port", "dbname"] as const;
-    const { username, password, host, port, dbname } = secretsManager.getSecretValue(keys);
+    const { username, password, host, port, dbname } = secretsManager.getSecretValue(keys, secretManagerArn);
     const databaseUrl = `postgresql://${username}:${password}@${host}:${port}/${dbname}`;
 
     // ECS(Fargate)
