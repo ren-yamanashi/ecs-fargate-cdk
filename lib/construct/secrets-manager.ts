@@ -6,14 +6,9 @@ export class SecretsManager extends Construct {
     super(scope, id);
   }
 
-  public getSecretValue<T extends [string, ...string[]]>(secretKeys: T): { [key in T[number]]: string } {
-    const secretCompleteArn = process.env.SECRET_MANAGER_ARN;
-    if (!secretCompleteArn) {
-      throw new Error("Failed to get SECRET_MANAGER_ARN");
-    }
-
+  public getSecretValue<T extends [string, ...string[]]>(secretKeys: T, arn: string): { [key in T[number]]: string } {
     const secret = Secret.fromSecretAttributes(this, "SecretStrings", {
-      secretCompleteArn,
+      secretCompleteArn: arn,
     });
 
     return secretKeys.reduce((acc, key) => {
