@@ -1,14 +1,14 @@
 import { Construct } from "constructs";
 
-import type { SecurityGroup } from "aws-cdk-lib/aws-ec2";
+import type { SecurityGroup, SubnetSelection, Vpc } from "aws-cdk-lib/aws-ec2";
 import type { AddApplicationTargetsProps, ApplicationListener } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import { ApplicationLoadBalancer, ApplicationProtocol, ApplicationTargetGroup, Protocol, TargetType } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import type { Vpc } from "./vpc";
 
 interface AlbProps {
   vpc: Vpc;
   resourceName: string;
   securityGroup: SecurityGroup;
+  subnets: SubnetSelection;
 }
 
 export class Alb extends Construct {
@@ -21,7 +21,7 @@ export class Alb extends Construct {
     // NOTE: ターゲットグループの作成
     const targetGroup = new ApplicationTargetGroup(this, "AlbTargetGroup", {
       targetGroupName: `${props.resourceName}-alb-tg`,
-      vpc: props.vpc.value,
+      vpc: props.vpc,
       targetType: TargetType.IP,
       protocol: ApplicationProtocol.HTTP,
       port: 80,
@@ -35,10 +35,10 @@ export class Alb extends Construct {
     // NOTE: ALBの作成
     this.value = new ApplicationLoadBalancer(this, "Alb", {
       loadBalancerName: `${props.resourceName}-alb`,
-      vpc: props.vpc.value,
+      vpc: props.vpc,
       internetFacing: true,
       securityGroup: props.securityGroup,
-      vpcSubnets: props.vpc.getPublicSubnets(),
+      vpcSubnets: props.subnets,
     });
 
     // NOTE: リスナーの作成

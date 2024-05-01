@@ -31,9 +31,10 @@ export class SampleNodeAppStack extends Stack {
 
     // ALB
     const alb = new Alb(this, "Alb", {
-      vpc,
+      vpc: vpc.value,
       resourceName,
       securityGroup: albSecurityGroup,
+      subnets: vpc.getPublicSubnets(),
     });
 
     // RDS
