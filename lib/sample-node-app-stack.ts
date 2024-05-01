@@ -25,7 +25,7 @@ export class SampleNodeAppStack extends Stack {
 
     // Security Group
     const { albSecurityGroup, ecsSecurityGroup, rdsSecurityGroup } = new SecurityGroup(this, "SecurityGroup", {
-      vpc,
+      vpc: vpc.value,
       resourceName,
     });
 

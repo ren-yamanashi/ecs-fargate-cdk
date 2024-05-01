@@ -1,6 +1,6 @@
+import type { Vpc } from "aws-cdk-lib/aws-ec2";
 import { Peer, Port, SecurityGroup as _SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
-import type { Vpc } from "./vpc";
 
 interface SecurityGroupProps {
   vpc: Vpc;
@@ -14,35 +14,59 @@ export class SecurityGroup extends Construct {
 
   constructor(scope: Construct, id: string, props: SecurityGroupProps) {
     super(scope, id);
-    // NOTE: ALB に関連付けるセキュリティグループ
-    //       任意の IPv4 アドレスからの HTTP, HTTPS アクセスを許可
-    this.albSecurityGroup = new _SecurityGroup(this, "AlbSecurityGroup", {
-      securityGroupName: `${props.resourceName}-alb-sg`,
-      vpc: props.vpc.value,
+    this.albSecurityGroup = this.createAlbSecurityGroup(props.vpc, props.resourceName);
+    this.ecsSecurityGroup = this.createEcsSecurityGroup(props.vpc, props.resourceName);
+    this.rdsSecurityGroup = this.createRdsSecurityGroup(props.vpc, props.resourceName);
+  }
+
+  /**
+   * ALB に関連付けるセキュリティグループを作成する
+   * - インバウンド通信: 任意の IPv4 アドレスからの HTTP, HTTPS アクセスを許可
+   * - アウトバウンド通信: すべて許可
+   */
+  private createAlbSecurityGroup(vpc: Vpc, resourceName: string): _SecurityGroup {
+    const sg = new _SecurityGroup(this, "AlbSecurityGroup", {
+      securityGroupName: `${resourceName}-alb-sg`,
+      vpc,
       description: "Allow HTTP and HTTPS inbound traffic. Allow all outbound traffic.",
       allowAllOutbound: true, // すべてのアウトバウンドトラフィックを許可
     });
-    this.albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80), "Allow HTTP inbound traffic");
-    this.albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS inbound traffic");
+    sg.addIngressRule(Peer.anyIpv4(), Port.tcp(80), "Allow HTTP inbound traffic");
+    sg.addIngressRule(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS inbound traffic");
 
-    // NOTE: ECS に関連付けるセキュリティグループ
-    //      ALB からのトラフィックを許可
-    this.ecsSecurityGroup = new _SecurityGroup(this, "EcsSecurityGroup", {
-      securityGroupName: `${props.resourceName}-ecs-sg`,
-      vpc: props.vpc.value,
-      description: "Allow all inbound traffic. Allow all outbound traffic.",
-      allowAllOutbound: true, // すべてのアウトバウンドトラフィックを許可
+    return sg;
+  }
+
+  /**
+   * ECS に関連付けるセキュリティグループを作成する
+   * - インバウンド通信: ALB からの HTTP アクセスを許可
+   * - アウトバウンド通信: すべて許可
+   */
+  private createEcsSecurityGroup(vpc: Vpc, resourceName: string): _SecurityGroup {
+    const sg = new _SecurityGroup(this, "EcsSecurityGroup", {
+      securityGroupName: `${resourceName}-ecs-sg`,
+      vpc,
+      description: "Allow HTTP inbound traffic. Allow all outbound traffic.",
+      allowAllOutbound: true,
     });
-    this.ecsSecurityGroup.addIngressRule(this.albSecurityGroup, Port.tcp(80), "Allow HTTP inbound traffic");
+    sg.addIngressRule(this.albSecurityGroup, Port.tcp(80), "Allow HTTP inbound traffic");
 
-    // NOTE: RDS に関連付けるセキュリティグループ
-    //       任意の IPv4 アドレスからの PostgreSQL アクセスを許可(ポート: 5432)
-    this.rdsSecurityGroup = new _SecurityGroup(this, "RdsSecurityGroup", {
-      securityGroupName: `${props.resourceName}-rds-sg`,
-      vpc: props.vpc.value,
+    return sg;
+  }
+
+  /**
+   * RDS に関連付けるセキュリティグループを作成する
+   * - インバウンド通信: ECSからの PostgreSQL アクセスを許可(ポート: 5432)
+   * - アウトバウンド通信: すべて許可
+   */
+  private createRdsSecurityGroup(vpc: Vpc, resourceName: string): _SecurityGroup {
+    const sg = new _SecurityGroup(this, "RdsSecurityGroup", {
+      securityGroupName: `${resourceName}-rds-sg`,
+      vpc,
       description: "Allow PostgreSQL inbound traffic. Allow all outbound traffic.",
-      allowAllOutbound: true, // すべてのアウトバウンドトラフィックを許可
+      allowAllOutbound: true,
     });
-    this.rdsSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(5432), "Allow PostgreSQL inbound traffic");
+    sg.addIngressRule(this.ecsSecurityGroup, Port.tcp(5432), "Allow PostgreSQL inbound traffic");
+    return sg;
   }
 }
