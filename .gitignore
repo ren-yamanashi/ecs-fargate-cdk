@@ -6,5 +6,6 @@ db/pgql_db
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+cdk.context.json
 dist
 .env
