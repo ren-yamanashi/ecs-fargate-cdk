@@ -1,12 +1,12 @@
 import { Construct } from "constructs";
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, DatabaseInstanceReadReplica, NetworkType, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
-import type { SecurityGroup } from "aws-cdk-lib/aws-ec2";
+import type { SecurityGroup, SubnetSelection, Vpc } from "aws-cdk-lib/aws-ec2";
 import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
-import type { Vpc } from "./vpc";
 
 interface RdsProps {
   vpc: Vpc;
   securityGroup: SecurityGroup;
+  subnets: SubnetSelection;
 }
 
 export class Rds extends Construct {
@@ -29,13 +29,11 @@ export class Rds extends Construct {
       ),
       credentials: rdsCredentials,
       databaseName: "cdk_test_db",
-      vpc: props.vpc.value,
-      vpcSubnets: props.vpc.getRdsIsolatedSubnets(),
+      vpc: props.vpc,
+      vpcSubnets: props.subnets,
       networkType: NetworkType.IPV4,
       securityGroups: [props.securityGroup],
       availabilityZone: "ap-northeast-1a",
-      deleteAutomatedBackups: true,
-      autoMinorVersionUpgrade: false,
     });
 
     // NOTE: リードレプリカの作成
@@ -45,11 +43,11 @@ export class Rds extends Construct {
         InstanceClass.T3,
         InstanceSize.MICRO,
       ),
-      vpc: props.vpc.value,
+      vpc: props.vpc,
+      vpcSubnets: props.subnets,
+      networkType: NetworkType.IPV4,
+      securityGroups: [props.securityGroup],
       availabilityZone: "ap-northeast-1c",
-      vpcSubnets: props.vpc.getRdsIsolatedSubnets(),
-      deleteAutomatedBackups: true,
-      autoMinorVersionUpgrade: false,
     });
   }
 }
