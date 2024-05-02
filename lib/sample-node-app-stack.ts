@@ -39,8 +39,9 @@ export class SampleNodeAppStack extends Stack {
 
     // RDS
     new Rds(this, "Rds", {
-      vpc,
+      vpc: vpc.value,
       securityGroup: rdsSecurityGroup,
+      subnets: vpc.getRdsIsolatedSubnets(),
     });
 
     // Secrets Manager
