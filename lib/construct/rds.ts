@@ -7,6 +7,7 @@ interface RdsProps {
   vpc: Vpc;
   securityGroup: SecurityGroup;
   subnets: SubnetSelection;
+  resourceName: string;
 }
 
 export class Rds extends Construct {
@@ -15,7 +16,7 @@ export class Rds extends Construct {
 
     // NOTE: パスワードを自動生成してSecrets Managerに保存
     const rdsCredentials = Credentials.fromGeneratedSecret("cdk_test_user", {
-      secretName: "/cdk-test/rds/",
+      secretName: `/${props.resourceName}/rds/`,
     });
 
     // NOTE: プライマリインスタンスの作成

@@ -16,6 +16,7 @@ export class Vpc extends Construct {
     this.value = new _Vpc(this, "Vpc", {
       vpcName: `${this.resourceName}-vpc`,
       availabilityZones: ["ap-northeast-1a", "ap-northeast-1c"],
+      // NOTE: ネットワークアドレス部:16bit, ホストアドレス部:16bit
       ipAddresses: IpAddresses.cidr("192.168.0.0/16"),
       subnetConfiguration: [
         {
