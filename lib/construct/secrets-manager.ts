@@ -17,9 +17,7 @@ export class SecretsManager extends Construct {
         throw new Error(`Failed to get ${key}`);
       }
 
-      // eslint-disable-next-line ts/prefer-ts-expect-error, ts/ban-ts-comment
-      // @ts-ignore
-      acc[key] = secretValue;
+      acc[key as keyof { [key in T[number]]: string }] = secretValue;
       return acc;
     }, {} as { [key in T[number]]: string });
   }

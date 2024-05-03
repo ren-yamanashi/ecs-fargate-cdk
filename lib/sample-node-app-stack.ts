@@ -40,6 +40,7 @@ export class SampleNodeAppStack extends Stack {
     // RDS
     new Rds(this, "Rds", {
       vpc: vpc.value,
+      resourceName,
       securityGroup: rdsSecurityGroup,
       subnets: vpc.getRdsIsolatedSubnets(),
     });
@@ -47,7 +48,7 @@ export class SampleNodeAppStack extends Stack {
     // Secrets Manager
     const secretManagerArn = process.env.RDS_SECRET_MANAGER_ARN;
     if (!secretManagerArn) {
-      throw new Error("Failed to get SECRET_MANAGER_ARN");
+      throw new Error("Failed to get RDS_SECRET_MANAGER_ARN");
     }
     const secretsManager = new SecretsManager(this, "SecretsManager");
     const keys: ["username", "password", "host", "port", "dbname"] = ["username", "password", "host", "port", "dbname"] as const;
@@ -56,13 +57,14 @@ export class SampleNodeAppStack extends Stack {
 
     // ECS(Fargate)
     const ecs = new Ecs(this, "EcsFargate", {
-      vpc,
+      vpc: vpc.value,
       resourceName,
       ecrRepository: repository,
       securityGroup: ecsSecurityGroup,
       env: {
         databaseUrl,
       },
+      subnets: vpc.getEcsIsolatedSubnets(),
     });
 
     // NOTE: ターゲットグループにタスクを追加
