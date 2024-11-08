@@ -4,6 +4,8 @@
 .gitignore
 docs/
 db/pgql_db/
+aws/
+configs/
 .vscode/
 .github/
 cdk.json

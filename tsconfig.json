@@ -1,33 +1,9 @@
 {
+  "extends": "./configs/tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
-    "experimentalDecorators": true,
-    "module": "commonjs",
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "strict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": false,
-    "alwaysStrict": true,
-    "noFallthroughCasesInSwitch": false,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "declaration": true,
-    "inlineSourceMap": true,
-    "inlineSources": true
+    "baseUrl": ".",
+    "outDir": "./dist"
   },
-  "exclude": [
-    "node_modules",
-    "docs",
-    "cdk.out",
-    "db"
-  ]
+  "include": ["eslint.config.mjs", "src"],
+  "exclude": ["node_modules", "dist", "aws"]
 }

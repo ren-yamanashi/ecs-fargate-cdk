@@ -3,9 +3,10 @@
 *.d.ts
 node_modules
 db/pgql_db
-# CDK asset staging directory
-.cdk.staging
-cdk.out
-cdk.context.json
 dist
 .env
+
+# CDK asset staging directory
+aws/.cdk.staging
+aws/cdk.out
+aws/cdk.json

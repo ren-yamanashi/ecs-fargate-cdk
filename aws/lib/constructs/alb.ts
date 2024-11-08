@@ -1,48 +1,57 @@
+import {
+  SubnetType,
+  type ISecurityGroup,
+  type IVpc,
+} from "aws-cdk-lib/aws-ec2";
+import type {
+  AddApplicationTargetsProps,
+  ApplicationListener,
+  IApplicationLoadBalancer,
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import {
+  ApplicationLoadBalancer,
+  ApplicationProtocol,
+  ApplicationTargetGroup,
+  Protocol,
+  TargetType,
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import { Construct } from "constructs";
 
-import type { SecurityGroup, SubnetSelection, Vpc } from "aws-cdk-lib/aws-ec2";
-import type { AddApplicationTargetsProps, ApplicationListener } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import { ApplicationLoadBalancer, ApplicationProtocol, ApplicationTargetGroup, Protocol, TargetType } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-
 interface AlbProps {
-  vpc: Vpc;
-  resourceName: string;
-  securityGroup: SecurityGroup;
-  subnets: SubnetSelection;
+  vpc: IVpc;
+  securityGroup: ISecurityGroup;
 }
 
 export class Alb extends Construct {
-  public readonly value: ApplicationLoadBalancer;
+  public readonly value: IApplicationLoadBalancer;
   private readonly listener: ApplicationListener;
 
   constructor(scope: Construct, id: string, props: AlbProps) {
     super(scope, id);
 
     // NOTE: ターゲットグループの作成
-    const targetGroup = new ApplicationTargetGroup(this, "AlbTargetGroup", {
-      targetGroupName: `${props.resourceName}-alb-tg`,
+    const targetGroup = new ApplicationTargetGroup(this, "TargetGroup", {
       vpc: props.vpc,
       targetType: TargetType.IP,
       protocol: ApplicationProtocol.HTTP,
       port: 80,
       healthCheck: {
-        path: "/",
+        path: "/health",
         port: "80",
         protocol: Protocol.HTTP,
       },
     });
 
     // NOTE: ALBの作成
-    this.value = new ApplicationLoadBalancer(this, "Alb", {
-      loadBalancerName: `${props.resourceName}-alb`,
+    this.value = new ApplicationLoadBalancer(this, "Resource", {
       vpc: props.vpc,
       internetFacing: true,
       securityGroup: props.securityGroup,
-      vpcSubnets: props.subnets,
+      vpcSubnets: props.vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
     });
 
     // NOTE: リスナーの作成
-    this.listener = this.value.addListener("AlbListener", {
+    this.listener = this.value.addListener("Listener", {
       protocol: ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
     });
