@@ -1,9 +1,8 @@
 import {
   SecurityGroup as _SecurityGroup,
-  ISecurityGroup,
   IVpc,
   Peer,
-  Port,
+  Port
 } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
@@ -15,9 +14,9 @@ export interface SecurityGroupProps {
 }
 
 export class SecurityGroup extends Construct {
-  public readonly albSecurityGroup: ISecurityGroup;
-  public readonly ecsSecurityGroup: ISecurityGroup;
-  public readonly rdsSecurityGroup: ISecurityGroup;
+  public readonly albSecurityGroup: _SecurityGroup;
+  public readonly ecsSecurityGroup: _SecurityGroup;
+  public readonly rdsSecurityGroup: _SecurityGroup;
 
   constructor(scope: Construct, id: string, props: SecurityGroupProps) {
     super(scope, id);
@@ -28,10 +27,10 @@ export class SecurityGroup extends Construct {
 
   /**
    * ALB に関連付けるセキュリティグループを作成する
-   * - インバウンド通信: 任意の IPv4 アドレスからの HTTP, HTTPS アクセスを許可
+   * - インバウンド通信: 任意の IPv4 アドレスからの HTTP(ポート: 80) アクセスを許可
    * - アウトバウンド通信: すべて許可
    */
-  private createAlbSecurityGroup(vpc: IVpc): ISecurityGroup {
+  private createAlbSecurityGroup(vpc: IVpc): _SecurityGroup {
     const sg = new _SecurityGroup(this, "Alb", {
       vpc,
       allowAllOutbound: true,
@@ -43,10 +42,10 @@ export class SecurityGroup extends Construct {
 
   /**
    * ECS に関連付けるセキュリティグループを作成する
-   * - インバウンド通信: ALB からの HTTP アクセスを許可
+   * - インバウンド通信: ALB からの HTTP(ポート: 80) アクセスを許可
    * - アウトバウンド通信: すべて許可
    */
-  private createEcsSecurityGroup(vpc: IVpc): ISecurityGroup {
+  private createEcsSecurityGroup(vpc: IVpc): _SecurityGroup {
     const sg = new _SecurityGroup(this, "Ecs", {
       vpc,
       allowAllOutbound: true,
@@ -58,15 +57,15 @@ export class SecurityGroup extends Construct {
 
   /**
    * RDS に関連付けるセキュリティグループを作成する
-   * - インバウンド通信: ECSからの MySQL アクセスを許可(ポート: 3306)
+   * - インバウンド通信: ECSからの PostgreSQL(ポート: 5432) アクセスを許可
    * - アウトバウンド通信: すべて許可
    */
-  private createRdsSecurityGroup(vpc: IVpc): ISecurityGroup {
+  private createRdsSecurityGroup(vpc: IVpc): _SecurityGroup {
     const sg = new _SecurityGroup(this, "Rds", {
       vpc,
       allowAllOutbound: true,
     });
-    sg.addIngressRule(this.ecsSecurityGroup, Port.tcp(3306));
+    sg.addIngressRule(this.ecsSecurityGroup, Port.tcp(5432));
     return sg;
   }
 }

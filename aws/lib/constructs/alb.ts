@@ -3,11 +3,7 @@ import {
   type ISecurityGroup,
   type IVpc,
 } from "aws-cdk-lib/aws-ec2";
-import type {
-  AddApplicationTargetsProps,
-  ApplicationListener,
-  IApplicationLoadBalancer,
-} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import type { ApplicationListener } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import {
   ApplicationLoadBalancer,
   ApplicationProtocol,
@@ -18,13 +14,19 @@ import {
 import { Construct } from "constructs";
 
 interface AlbProps {
+  /**
+   * ALBを作成するVPC
+   */
   vpc: IVpc;
+  /**
+   * ALBに関連付けるセキュリティグループ
+   */
   securityGroup: ISecurityGroup;
 }
 
 export class Alb extends Construct {
-  public readonly value: IApplicationLoadBalancer;
-  private readonly listener: ApplicationListener;
+  public readonly dnsName: string;
+  public readonly listener: ApplicationListener;
 
   constructor(scope: Construct, id: string, props: AlbProps) {
     super(scope, id);
@@ -39,11 +41,12 @@ export class Alb extends Construct {
         path: "/health",
         port: "80",
         protocol: Protocol.HTTP,
+        healthyHttpCodes: "200",
       },
     });
 
     // NOTE: ALBの作成
-    this.value = new ApplicationLoadBalancer(this, "Resource", {
+    const alb = new ApplicationLoadBalancer(this, "Resource", {
       vpc: props.vpc,
       internetFacing: true,
       securityGroup: props.securityGroup,
@@ -51,13 +54,11 @@ export class Alb extends Construct {
     });
 
     // NOTE: リスナーの作成
-    this.listener = this.value.addListener("Listener", {
+    this.listener = alb.addListener("Listener", {
       protocol: ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
     });
-  }
 
-  public addTargets(id: string, props: AddApplicationTargetsProps): void {
-    this.listener.addTargets(id, props);
+    this.dnsName = alb.loadBalancerDnsName;
   }
 }

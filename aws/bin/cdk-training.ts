@@ -6,9 +6,4 @@ import { CdkTrainingStack } from "../lib/cdk-training-stack";
 
 const app = new cdk.App();
 
-new CdkTrainingStack(app, "CdkTrainingStack", {
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: "ap-northeast-1",
-  },
-});
+new CdkTrainingStack(app, "CdkTrainingStack");

@@ -13,7 +13,7 @@
     "prisma:generate": "prisma generate"
   },
   "volta": {
-    "node": "22.11.0"
+    "node": "20.11.0"
   },
   "dependencies": {
     "@hono/node-server": "^1.10.0",

@@ -1,14 +1,13 @@
 import path from "node:path";
 
 import { RemovalPolicy } from "aws-cdk-lib";
-import type { IRepository } from "aws-cdk-lib/aws-ecr";
-import { Repository } from "aws-cdk-lib/aws-ecr";
+import { Repository, TagMutability } from "aws-cdk-lib/aws-ecr";
 import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
 import { DockerImageName, ECRDeployment } from "cdk-ecr-deployment";
 import { Construct } from "constructs";
 
 export class Ecr extends Construct {
-  public readonly repository: IRepository;
+  public readonly repository: Repository;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
@@ -16,10 +15,12 @@ export class Ecr extends Construct {
     this.repository = new Repository(this, "Repository", {
       removalPolicy: RemovalPolicy.DESTROY,
       emptyOnDelete: true,
+      imageScanOnPush: true,
+      imageTagMutability: TagMutability.MUTABLE,
     });
 
     const image = new DockerImageAsset(this, "Image", {
-      directory: path.join(__dirname, "../../../Dockerfile"),
+      directory: path.join(__dirname, "../../../"),
       platform: Platform.LINUX_ARM64,
     });
 

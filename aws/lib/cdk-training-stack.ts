@@ -13,8 +13,9 @@ export class CdkTrainingStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const vpc = new Vpc(this, "Vpc");
     const ecr = new Ecr(this, "Ecr");
+
+    const vpc = new Vpc(this, "Vpc");
 
     const securityGroup = new SecurityGroup(this, "SecurityGroup", {
       vpc: vpc.value,
@@ -39,18 +40,18 @@ export class CdkTrainingStack extends Stack {
       rdsSecrets: rds.getDatabaseSecrets(),
     });
 
-    alb.addTargets("Ecs", {
+    alb.listener.addTargets("Ecs", {
       port: 80,
       targets: [ecs.fargateService],
       healthCheck: {
-        path: "/",
-        interval: Duration.minutes(1),
+        path: "/health",
+        interval: Duration.minutes(5),
       },
     });
 
     // NOTE: 出力としてロードバランサーのDNS名を出力
     new CfnOutput(this, "LoadBalancerDns", {
-      value: alb.value.loadBalancerDnsName,
+      value: alb.dnsName,
     });
   }
 }

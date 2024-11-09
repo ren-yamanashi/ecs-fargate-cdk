@@ -1,3 +1,4 @@
+import { RemovalPolicy } from "aws-cdk-lib";
 import type { ISecurityGroup, IVpc } from "aws-cdk-lib/aws-ec2";
 import {
   InstanceClass,
@@ -10,8 +11,8 @@ import {
   Credentials,
   DatabaseInstance,
   DatabaseInstanceEngine,
-  MysqlEngineVersion,
   NetworkType,
+  PostgresEngineVersion,
 } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 
@@ -49,12 +50,14 @@ export class Rds extends Construct {
   constructor(scope: Construct, id: string, props: RdsProps) {
     super(scope, id);
 
+    this.validateDatabaseName(props.databaseName);
+
     // NOTE: パスワードを自動生成してSecrets Managerに保存
     const rdsCredentials = Credentials.fromGeneratedSecret(props.username);
 
-    this.instance = new DatabaseInstance(this, "MySqlInstance", {
-      engine: DatabaseInstanceEngine.mysql({
-        version: MysqlEngineVersion.VER_8_0,
+    this.instance = new DatabaseInstance(this, "PostgresqlInstance", {
+      engine: DatabaseInstanceEngine.postgres({
+        version: PostgresEngineVersion.VER_16,
       }),
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO),
       credentials: rdsCredentials,
@@ -62,11 +65,11 @@ export class Rds extends Construct {
       vpc: props.vpc,
       vpcSubnets: props.vpc.selectSubnets({
         subnetType: SubnetType.PRIVATE_ISOLATED,
-        availabilityZones: ["ap-northeast-1a"],
       }),
       networkType: NetworkType.IPV4,
       securityGroups: [props.securityGroup],
       availabilityZone: "ap-northeast-1a",
+      removalPolicy: RemovalPolicy.DESTROY,
     });
   }
 
@@ -79,12 +82,12 @@ export class Rds extends Construct {
    * taskDefinition.addContainer("EcsContainer", {
    *   // 他のプロパティは省略
    *   secrets: {
-   *     engine: databaseSecrets.engine,
-   *     username: databaseSecrets.username,
-   *     password: databaseSecrets.password,
-   *     dbname: databaseSecrets.dbname,
-   *     port: databaseSecrets.port,
-   *     host: databaseSecrets.host,
+   *     DATABASE_ENGINE: databaseSecrets.engine,
+   *     DATABASE_USERNAME: databaseSecrets.username,
+   *     DATABASE_PASSWORD: databaseSecrets.password,
+   *     DATABASE_NAME: databaseSecrets.dbname,
+   *     DATABASE_PORT: databaseSecrets.port,
+   *     DATABASE_HOST: databaseSecrets.host,
    *   },
    * });
    * ```

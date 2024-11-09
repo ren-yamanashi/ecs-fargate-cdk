@@ -1,9 +1,9 @@
-import { Duration } from "aws-cdk-lib";
+import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import { MetricAggregationType } from "aws-cdk-lib/aws-applicationautoscaling";
 import {
   SubnetType,
   type ISecurityGroup,
-  type IVpc
+  type IVpc,
 } from "aws-cdk-lib/aws-ec2";
 import type { IRepository } from "aws-cdk-lib/aws-ecr";
 import {
@@ -15,15 +15,27 @@ import {
   FargateTaskDefinition,
   TaskDefinitionRevision,
 } from "aws-cdk-lib/aws-ecs";
-import { RetentionDays } from "aws-cdk-lib/aws-logs";
+import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
 import { RdsSecrets } from "./rds";
 
 interface EcsProps {
+  /**
+   * ECSを作成するVPC
+   */
   vpc: IVpc;
+  /**
+   * ECRリポジトリ
+   */
   repository: IRepository;
+  /**
+   * ECSに関連付けるセキュリティグループ
+   */
   securityGroup: ISecurityGroup;
+  /**
+   * RDSのシークレット
+   */
   rdsSecrets: RdsSecrets;
 }
 
@@ -38,6 +50,17 @@ export class Ecs extends Construct {
       vpc: props.vpc,
     });
 
+    // NOTE: ロググループの作成
+    const logGroup = new LogGroup(this, "LogGroup", {
+      logGroupName: "/ecs/cdk-training-nigg-ecs",
+      removalPolicy: RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_DAY,
+    });
+    const logDriver = new AwsLogDriver({
+      logGroup,
+      streamPrefix: "container",
+    });
+
     // NOTE: タスク定義の作成
     const taskDefinition = new FargateTaskDefinition(this, "TaskDefinition", {
       cpu: 256,
@@ -46,20 +69,15 @@ export class Ecs extends Construct {
         cpuArchitecture: CpuArchitecture.ARM64,
       },
     });
-    const logDriver = new AwsLogDriver({
-      streamPrefix: "cdk-training",
-      logRetention: RetentionDays.ONE_DAY,
-    });
     taskDefinition.addContainer("Container", {
       image: ContainerImage.fromEcrRepository(props.repository),
       portMappings: [{ containerPort: 80, hostPort: 80 }],
       secrets: {
-        username: props.rdsSecrets.username,
-        password: props.rdsSecrets.password,
-        host: props.rdsSecrets.host,
-        port: props.rdsSecrets.port,
-        dbname: props.rdsSecrets.dbname,
-        engine: props.rdsSecrets.engine,
+        POSTGRES_USER: props.rdsSecrets.username,
+        POSTGRES_PASSWORD: props.rdsSecrets.password,
+        DATABASE_HOST: props.rdsSecrets.host,
+        DATABASE_PORT: props.rdsSecrets.port,
+        DATABASE_NAME: props.rdsSecrets.dbname,
       },
       logging: logDriver,
     });

@@ -1,8 +1,8 @@
 {
-  "name": "back-cdk-training",
+  "name": "cdk-training",
   "version": "0.1.0",
   "bin": {
-    "aws": "bin/back-cdk-training.ts"
+    "aws": "bin/cdk-training.ts"
   },
   "scripts": {
     "test": "vitest --run",
@@ -22,6 +22,6 @@
     "source-map-support": "^0.5.21"
   },
   "volta": {
-    "node": "22.11.0"
+    "node": "20.11.0"
   }
 }

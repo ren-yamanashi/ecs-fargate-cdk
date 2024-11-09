@@ -1,4 +1,3 @@
-import type { IVpc } from "aws-cdk-lib/aws-ec2";
 import {
   GatewayVpcEndpointAwsService,
   InterfaceVpcEndpointAwsService,
@@ -9,7 +8,7 @@ import {
 import { Construct } from "constructs";
 
 export class Vpc extends Construct {
-  public readonly value: IVpc;
+  public readonly value: _Vpc;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
@@ -33,6 +32,7 @@ export class Vpc extends Construct {
         },
       ],
       natGateways: 0,
+      createInternetGateway: true,
     });
 
     // NOTE: VPCエンドポイントを作成
@@ -45,7 +45,7 @@ export class Vpc extends Construct {
     this.value.addInterfaceEndpoint("CwLogsEndpoint", {
       service: InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
     });
-    this.value.addGatewayEndpoint("SsmEndpoint", {
+    this.value.addInterfaceEndpoint("SecretsManagerEndpoint", {
       service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
     });
     this.value.addGatewayEndpoint("S3Endpoint", {
