@@ -1,11 +1,10 @@
 .env*
 *.md
-.eslint.concig.mjs
+.eslint.config.mjs
 .gitignore
 docs/
-db/pgql_db/
+db/mysql_devmode/
 aws/
-configs/
 .vscode/
 .github/
 cdk.json
