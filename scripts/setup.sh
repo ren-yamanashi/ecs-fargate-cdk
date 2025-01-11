@@ -7,12 +7,12 @@ cp default.env .env
 pnpm install --frozen-lockfile
 
 # コンテナ起動
-pnpm run docker-up:db
+pnpm docker-up:db
 
 # migration実行
 sh ./scripts/migration.sh
 
 # prisma client生成
-pnpm run prisma:generate
+pnpm prisma:generate
 
-echo ".env ファイルの 'CDK_DEFAULT_ACCOUNT' を設定してください。"
+sh ./scripts/entrypoint.sh
