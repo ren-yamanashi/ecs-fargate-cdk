@@ -11,7 +11,9 @@ const prisma = new PrismaClient();
 
 async function getPosts() {
   try {
-    const posts = await prisma.post.findMany();
+    const posts = await prisma.$transaction(
+      async (transaction) => await transaction.post.findMany()
+    );
     return posts;
   } catch (error) {
     console.error({
@@ -25,11 +27,14 @@ async function getPosts() {
 
 async function createPost(title: string) {
   try {
-    const post = await prisma.post.create({
-      data: {
-        title,
-      },
-    });
+    const post = await prisma.$transaction(
+      async (transaction) =>
+        await transaction.post.create({
+          data: {
+            title,
+          },
+        })
+    );
     return post;
   } catch (error) {
     console.error({
