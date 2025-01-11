@@ -1,16 +1,18 @@
 version: '3.8'
 services:
-  sample-db:
-    image: postgres:latest
+  ecs-fargate-cdk:
+    image: mysql:8.0.36-bookworm
     platform: linux/amd64
-    container_name: 'sample-db'
-    env_file:
-      - ../.env
+    container_name: ecs-fargate-cdk-mysql
     environment:
-      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C'
-      POSTGRES_DB: sample_db
+      MYSQL_USER: default
+      MYSQL_PASSWORD: default
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sample_db
     volumes:
-      - ./pgql_db:/var/lib/postgresql/data
+      - ./mysql_devmode:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/my.cnf
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
     ports:
-      - '5434:5432'
+      - 3306:3306

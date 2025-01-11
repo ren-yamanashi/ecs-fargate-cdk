@@ -1,7 +1,7 @@
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import * as dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import * as dotenv from "dotenv";
+import { Hono } from "hono";
 import { validator } from "hono/validator";
 
 dotenv.config({ path: ".env" });
@@ -11,36 +11,37 @@ const prisma = new PrismaClient();
 
 async function getPosts() {
   try {
-    const posts = await prisma.post.findMany();
+    const posts = await prisma.$transaction(
+      async (transaction) => await transaction.post.findMany()
+    );
     return posts;
-  }
-  catch (error) {
+  } catch (error) {
     console.error({
       message: "Failed to get posts",
       error,
     });
-  }
-  finally {
+  } finally {
     await prisma.$disconnect();
   }
 }
 
 async function createPost(title: string) {
   try {
-    const post = await prisma.post.create({
-      data: {
-        title,
-      },
-    });
+    const post = await prisma.$transaction(
+      async (transaction) =>
+        await transaction.post.create({
+          data: {
+            title,
+          },
+        })
+    );
     return post;
-  }
-  catch (error) {
+  } catch (error) {
     console.error({
       message: "Failed to create post",
       error,
     });
-  }
-  finally {
+  } finally {
     await prisma.$disconnect();
   }
 }
@@ -51,31 +52,39 @@ app.get("/", (c) => {
   return c.text("Hello World");
 });
 
+app.get("/health", (c) => {
+  c.status(200);
+  return c.text("Success connect to server.");
+});
+
 app.get("/posts", async (c) => {
   const posts = await getPosts();
   c.status(200);
   return c.json(posts);
 });
 
-app.post("/posts", validator("json", (value, c) => {
-  const title = value.title;
-  if (!title || typeof title !== "string") {
-    return c.text("Invalid!", 400);
+app.post(
+  "/posts",
+  validator("json", (value, c) => {
+    const title = value.title;
+    if (!title || typeof title !== "string") {
+      return c.text("Invalid!", 400);
+    }
+    return {
+      title,
+    };
+  }),
+  async (c) => {
+    const { title } = await c.req.valid("json");
+    const post = await createPost(title);
+    c.status(201);
+    return c.json(post);
   }
-  return {
-    title,
-  };
-}), async (c) => {
-  const { title } = await c.req.valid("json");
-  const post = await createPost(title);
-  c.status(201);
-  return c.json(post);
-});
+);
 
 serve({
   fetch: app.fetch,
   port,
 });
 
-// eslint-disable-next-line no-console
-console.log(`🚀  Server ready at ${process.env.API_URL}:${port}/`);
+console.log(`🚀  Server ready at port: ${port}`);
