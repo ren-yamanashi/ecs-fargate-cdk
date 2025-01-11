@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  mates-back-selection:
+  ecs-fargate-cdk:
     image: mysql:8.0.36-bookworm
     platform: linux/amd64
     container_name: ecs-fargate-cdk-mysql
