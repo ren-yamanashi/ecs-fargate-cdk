@@ -57,7 +57,7 @@ export class Ecs extends Construct {
 
     // NOTE: ロググループの作成
     const logGroup = new LogGroup(this, "LogGroup", {
-      logGroupName: "/ecs/cdk-training-nigg-ecs",
+      logGroupName: "/ecs/sample-node-app",
       removalPolicy: RemovalPolicy.DESTROY,
       retention: RetentionDays.ONE_DAY,
     });

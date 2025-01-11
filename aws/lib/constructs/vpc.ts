@@ -19,20 +19,20 @@ export class Vpc extends Construct {
     this.resource = new _Vpc(this, "Vpc", {
       availabilityZones: Object.values(STACK_AVAILABILITY_ZONES),
       // NOTE: ネットワークアドレス部:24bit, ホストアドレス部:8bit
-      ipAddresses: IpAddresses.cidr("192.168.0.0/24"),
+      ipAddresses: IpAddresses.cidr("192.168.0.0/16"),
       subnetConfiguration: [
-        // NOTE: 小規模なので各サブネットのcidrMaskは`/27`で十分(ネットワークアドレス部: 27bit, ホストアドレス部: 5bit)
+        // NOTE: 小規模なので各サブネットのcidrMaskは`/26`で十分(ネットワークアドレス部: 26bit, ホストアドレス部: 6bit)
         {
           name: "public",
-          cidrMask: 27,
+          cidrMask: 26,
           subnetType: SubnetType.PUBLIC,
         },
         // NOTE: 外部との通信はALBを介して行う(NATGatewayを介さない)ので、ISOLATEDを指定(ECRとの接続はVPCエンドポイントを利用する)
         {
           name: "isolated",
-          cidrMask: 27,
+          cidrMask: 26,
           subnetType: SubnetType.PRIVATE_ISOLATED,
-        },
+        }
       ],
       natGateways: 0,
       createInternetGateway: true,

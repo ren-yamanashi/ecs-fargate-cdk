@@ -22,8 +22,9 @@ RUN npm i -g npm@latest; \
   pnpm --version;
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
+COPY ./configs/ ./configs/
 COPY tsconfig.json ./
 COPY ./prisma/ ./prisma/
 COPY ./src/ ./src/

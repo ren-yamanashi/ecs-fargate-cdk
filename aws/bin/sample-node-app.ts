@@ -2,8 +2,8 @@
 import * as cdk from "aws-cdk-lib";
 
 import "source-map-support/register";
-import { CdkTrainingStack } from "../lib/cdk-training-stack";
+import { SampleNodeAppStack } from "../lib/sample-node-app-stack";
 
 const app = new cdk.App();
 
-new CdkTrainingStack(app, "CdkTrainingStack");
+new SampleNodeAppStack(app, "SampleNodeApp");

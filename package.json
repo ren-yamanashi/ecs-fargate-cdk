@@ -1,12 +1,10 @@
 {
-  "name": "cdk-training",
+  "name": "ecs-fargate-cdk",
   "version": "0.1.0",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
     "lint": "eslint .",
-    "docker:build": "docker build -t cdk-training . ",
-    "docker-up": "docker compose -f ./docker-compose.yaml up -d",
-    "docker-down": "docker compose -f ./docker-compose.yaml down",
+    "docker:build": "docker build -t ecs-fargate-cdk . ",
     "docker-up:db": "docker compose -f ./db/docker-compose.yaml up -d",
     "docker-down:db": "docker compose -f ./db/docker-compose.yaml down",
     "prisma:migrate-dev": "dotenv -e .env -- npx prisma migrate dev",
@@ -18,7 +16,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.10.0",
-    "@prisma/client": "^5.12.1",
+    "@prisma/client": "^6.2.1",
     "hono": "^4.2.3"
   },
   "devDependencies": {
@@ -31,7 +29,7 @@
     "eslint": "^9.10.0",
     "eslint-cdk-plugin": "^1.0.3",
     "eslint-plugin-import": "^2.26.0",
-    "prisma": "^5.12.1",
+    "prisma": "^6.2.1",
     "ts-node": "^10.9.2",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.6.0",

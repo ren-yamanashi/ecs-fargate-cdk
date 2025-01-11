@@ -1,8 +1,8 @@
 {
-  "name": "cdk-training",
+  "name": "sample-node-app",
   "version": "0.1.0",
   "bin": {
-    "aws": "bin/cdk-training.ts"
+    "aws": "bin/sample-node-app.ts"
   },
   "scripts": {
     "test": "vitest --run",

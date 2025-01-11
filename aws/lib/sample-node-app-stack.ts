@@ -8,7 +8,7 @@ import { Ecs } from "./constructs/ecs";
 import { Rds } from "./constructs/rds";
 import { Vpc } from "./constructs/vpc";
 
-export class CdkTrainingStack extends Stack {
+export class SampleNodeAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -40,7 +40,7 @@ export class CdkTrainingStack extends Stack {
       port: 80,
       targets: [ecs.loadBalancerTarget],
       healthCheck: {
-        path: "/health",
+        path: "/",
         interval: Duration.seconds(5),
         timeout: Duration.seconds(3),
         healthyThresholdCount: 3,
