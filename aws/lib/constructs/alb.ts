@@ -1,9 +1,8 @@
-import {
-  SubnetType,
-  type ISecurityGroup,
-  type IVpc,
-} from "aws-cdk-lib/aws-ec2";
-import type { ApplicationListener } from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { IConnectable, SubnetType, type IVpc } from "aws-cdk-lib/aws-ec2";
+import type {
+  IApplicationListener,
+  IApplicationLoadBalancer,
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import {
   ApplicationLoadBalancer,
   ApplicationProtocol,
@@ -17,16 +16,21 @@ interface AlbProps {
   /**
    * ALBを作成するVPC
    */
-  vpc: IVpc;
-  /**
-   * ALBに関連付けるセキュリティグループ
-   */
-  securityGroup: ISecurityGroup;
+  readonly vpc: IVpc;
 }
 
 export class Alb extends Construct {
-  public readonly dnsName: string;
-  public readonly listener: ApplicationListener;
+  /**
+   * 接続可能なALBのインスタンス
+   * @example リソースをALBと接続する際には、このインスタンスを利用して以下のように接続を行う
+   * ```typescript
+   * // `allowDefaultPortTo`の引数には接続したいリソースを指定
+   * connectableInstance.connections.allowDefaultPortTo(ecsService);
+   * ```
+   */
+  public readonly connectableInstance: IConnectable;
+
+  private readonly resource: IApplicationLoadBalancer;
 
   constructor(scope: Construct, id: string, props: AlbProps) {
     super(scope, id);
@@ -46,19 +50,34 @@ export class Alb extends Construct {
     });
 
     // NOTE: ALBの作成
-    const alb = new ApplicationLoadBalancer(this, "Resource", {
+    this.resource = new ApplicationLoadBalancer(this, "Resource", {
       vpc: props.vpc,
       internetFacing: true,
-      securityGroup: props.securityGroup,
       vpcSubnets: props.vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
     });
 
     // NOTE: リスナーの作成
-    this.listener = alb.addListener("Listener", {
+    this.resource.addListener("Listener", {
       protocol: ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
     });
 
-    this.dnsName = alb.loadBalancerDnsName;
+    this.connectableInstance = this.resource;
+  }
+
+  /**
+   * ALBのリスナー
+   */
+  get listener(): IApplicationListener {
+    // NOTE: リスナーはconstructor内で1つしか作成しないため、配列の一番目の要素を取得
+    //       public変数には`addListener`メソッドを呼び出し可能な変数がないため、配列の要素が1つ以外の場合は考慮しない
+    return this.resource.listeners[0];
+  }
+
+  /**
+   * ALBのDNS名
+   */
+  get dnsName(): string {
+    return this.resource.loadBalancerDnsName;
   }
 }

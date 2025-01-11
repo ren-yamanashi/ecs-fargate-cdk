@@ -6,7 +6,6 @@ import { Alb } from "./constructs/alb";
 import { Ecr } from "./constructs/ecr";
 import { Ecs } from "./constructs/ecs";
 import { Rds } from "./constructs/rds";
-import { SecurityGroup } from "./constructs/security-group";
 import { Vpc } from "./constructs/vpc";
 
 export class CdkTrainingStack extends Stack {
@@ -17,35 +16,35 @@ export class CdkTrainingStack extends Stack {
 
     const vpc = new Vpc(this, "Vpc");
 
-    const securityGroup = new SecurityGroup(this, "SecurityGroup", {
-      vpc: vpc.value,
-    });
-
     const alb = new Alb(this, "Alb", {
-      vpc: vpc.value,
-      securityGroup: securityGroup.albSecurityGroup,
+      vpc: vpc.resource,
     });
 
     const rds = new Rds(this, "Rds", {
-      vpc: vpc.value,
-      securityGroup: securityGroup.rdsSecurityGroup,
-      databaseName: "cdk_training_nigg",
-      username: "nigg",
+      vpc: vpc.resource,
+      databaseName: "sample_database",
+      username: "ren_yamanashi",
     });
 
-    const ecs = new Ecs(this, "EcsFargate", {
-      vpc: vpc.value,
+    const ecs = new Ecs(this, "Ecs", {
+      vpc: vpc.resource,
       repository: ecr.repository,
-      securityGroup: securityGroup.ecsSecurityGroup,
-      rdsSecrets: rds.getDatabaseSecrets(),
+      connections: {
+        alb: alb.connectableInstance,
+        rds: rds.connectableInstance,
+      },
+      secrets: rds.secrets,
     });
 
     alb.listener.addTargets("Ecs", {
       port: 80,
-      targets: [ecs.fargateService],
+      targets: [ecs.loadBalancerTarget],
       healthCheck: {
         path: "/health",
-        interval: Duration.minutes(5),
+        interval: Duration.seconds(5),
+        timeout: Duration.seconds(3),
+        healthyThresholdCount: 3,
+        unhealthyThresholdCount: 2,
       },
     });
 

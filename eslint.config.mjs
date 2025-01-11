@@ -1,16 +1,17 @@
 import eslint from "@eslint/js";
+import eslintCdkPlugin from "eslint-cdk-plugin";
 import importPlugin from "eslint-plugin-import";
 import tsEslint from "typescript-eslint";
 
 export default tsEslint.config(
   eslint.configs.recommended,
-  ...tsEslint.configs.strict,
+  ...tsEslint.configs.recommended,
   ...tsEslint.configs.stylistic,
   {
     files: ["src/**/*.ts", "aws/lib/**/*.ts", "aws/bin/*.ts"],
     languageOptions: {
-      ecmaVersion: 14,
-      sourceType: "commonjs",
+      // ecmaVersion: 14,
+      // sourceType: "commonjs",
       parserOptions: {
         projectService: true,
         project: "./tsconfig.json",
@@ -18,8 +19,12 @@ export default tsEslint.config(
     },
     plugins: {
       import: importPlugin,
+      cdk: eslintCdkPlugin,
+      typescript: tsEslint,
+      eslint: eslint,
     },
     rules: {
+      ...eslintCdkPlugin.configs.recommended.rules,
       /**
        * 無効にするルール
        */
@@ -64,6 +69,6 @@ export default tsEslint.config(
   // NOTE: `ignores`に指定したパターンはESLintによってグローバルに無視される。
   //       参考: https://eslint.org/docs/latest/use/configure/configuration-files#globally-ignoring-files-with-ignores
   {
-    ignores: ["dist", "node_modules", ".vscode", "package.json", "*.js"],
+    ignores: ["dist", "aws/cdk.out", "node_modules", "*.js"],
   }
 );

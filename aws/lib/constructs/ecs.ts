@@ -1,9 +1,10 @@
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import { MetricAggregationType } from "aws-cdk-lib/aws-applicationautoscaling";
 import {
+  IConnectable,
+  Port,
   SubnetType,
-  type ISecurityGroup,
-  type IVpc,
+  type IVpc
 } from "aws-cdk-lib/aws-ec2";
 import type { IRepository } from "aws-cdk-lib/aws-ecr";
 import {
@@ -13,34 +14,38 @@ import {
   CpuArchitecture,
   FargateService,
   FargateTaskDefinition,
-  TaskDefinitionRevision,
+  IEcsLoadBalancerTarget,
+  Secret,
+  TaskDefinitionRevision
 } from "aws-cdk-lib/aws-ecs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
-import { RdsSecrets } from "./rds";
 
 interface EcsProps {
   /**
    * ECSを作成するVPC
    */
-  vpc: IVpc;
+  readonly vpc: IVpc;
   /**
    * ECRリポジトリ
    */
-  repository: IRepository;
+  readonly repository: IRepository;
   /**
-   * ECSに関連付けるセキュリティグループ
+   * ECSと接続を行うリソース
    */
-  securityGroup: ISecurityGroup;
+  readonly connections: { alb: IConnectable; rds: IConnectable };
   /**
-   * RDSのシークレット
+   * コンテナに渡すシークレット
    */
-  rdsSecrets: RdsSecrets;
+  readonly secrets: { [key: string]: Secret };
 }
 
 export class Ecs extends Construct {
-  public readonly fargateService: FargateService;
+  /**
+   * ロードバランサーのターゲットに指定するリソース
+   */
+  public readonly loadBalancerTarget: IEcsLoadBalancerTarget;
 
   constructor(scope: Construct, id: string, props: EcsProps) {
     super(scope, id);
@@ -72,45 +77,44 @@ export class Ecs extends Construct {
     taskDefinition.addContainer("Container", {
       image: ContainerImage.fromEcrRepository(props.repository),
       portMappings: [{ containerPort: 80, hostPort: 80 }],
-      secrets: {
-        POSTGRES_USER: props.rdsSecrets.username,
-        POSTGRES_PASSWORD: props.rdsSecrets.password,
-        DATABASE_HOST: props.rdsSecrets.host,
-        DATABASE_PORT: props.rdsSecrets.port,
-        DATABASE_NAME: props.rdsSecrets.dbname,
-      },
+      secrets: props.secrets,
       logging: logDriver,
     });
 
     // NOTE: Fargate起動タイプでサービスの作成
-    this.fargateService = new FargateService(this, "Service", {
+    const fargateService = new FargateService(this, "Service", {
       cluster,
       taskDefinition,
       desiredCount: 2,
-      securityGroups: [props.securityGroup],
       vpcSubnets: props.vpc.selectSubnets({
         subnetType: SubnetType.PRIVATE_ISOLATED,
       }),
       taskDefinitionRevision: TaskDefinitionRevision.LATEST,
     });
 
+    // NOTE: FargateServiceは`default port`を持たないため、明示的に指定する
+    fargateService.connections.allowFrom(props.connections.alb, Port.tcp(80));
+    props.connections.rds.connections.allowDefaultPortFrom(fargateService);
+
     // NOTE: オートスケーリングのターゲット設定
-    const scaling = this.fargateService.autoScaleTaskCount({
+    const scaling = fargateService.autoScaleTaskCount({
       minCapacity: 2,
       maxCapacity: 6,
     });
 
     // NOTE: CPU使用率に応じてスケールアウト・スケールイン
     scaling.scaleOnMetric("StepScaling", {
-      metric: this.fargateService.metricCpuUtilization({
-        period: Duration.seconds(60), // 60秒間隔でCPU使用率を取得
+      metric: fargateService.metricCpuUtilization({
+        period: Duration.seconds(60),
       }),
       scalingSteps: [
-        { lower: 70, change: +1 }, // CPUの使用率が70%以上の場合にタスクを1つ増加
-        { upper: 30, change: -1 }, // CPUの使用率が30%以下の場合にタスクを1つ減少
+        { lower: 70, change: +1 },
+        { upper: 30, change: -1 },
       ],
-      metricAggregationType: MetricAggregationType.AVERAGE, // 平均値に基づいてスケーリングされるように設定
-      cooldown: Duration.seconds(60), // スケーリングのクールダウン期間を60秒に設定
+      metricAggregationType: MetricAggregationType.AVERAGE, 
+      cooldown: Duration.seconds(60),
     });
+
+    this.loadBalancerTarget = fargateService;
   }
 }

@@ -1,5 +1,6 @@
 import {
   GatewayVpcEndpointAwsService,
+  IVpc,
   InterfaceVpcEndpointAwsService,
   IpAddresses,
   SubnetType,
@@ -7,14 +8,16 @@ import {
 } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
+import { STACK_AVAILABILITY_ZONES } from "../config";
+
 export class Vpc extends Construct {
-  public readonly value: _Vpc;
+  public readonly resource: IVpc;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    this.value = new _Vpc(this, "Vpc", {
-      availabilityZones: ["ap-northeast-1a", "ap-northeast-1c"],
+    this.resource = new _Vpc(this, "Vpc", {
+      availabilityZones: Object.values(STACK_AVAILABILITY_ZONES),
       // NOTE: ネットワークアドレス部:24bit, ホストアドレス部:8bit
       ipAddresses: IpAddresses.cidr("192.168.0.0/24"),
       subnetConfiguration: [
@@ -36,23 +39,23 @@ export class Vpc extends Construct {
     });
 
     // NOTE: VPCエンドポイントを作成
-    this.value.addInterfaceEndpoint("EcrEndpoint", {
+    this.resource.addInterfaceEndpoint("EcrEndpoint", {
       service: InterfaceVpcEndpointAwsService.ECR,
     });
-    this.value.addInterfaceEndpoint("EcrDkrEndpoint", {
+    this.resource.addInterfaceEndpoint("EcrDkrEndpoint", {
       service: InterfaceVpcEndpointAwsService.ECR_DOCKER,
     });
-    this.value.addInterfaceEndpoint("CwLogsEndpoint", {
+    this.resource.addInterfaceEndpoint("CwLogsEndpoint", {
       service: InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
     });
-    this.value.addInterfaceEndpoint("SecretsManagerEndpoint", {
+    this.resource.addInterfaceEndpoint("SecretsManagerEndpoint", {
       service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
     });
-    this.value.addGatewayEndpoint("S3Endpoint", {
+    this.resource.addGatewayEndpoint("S3Endpoint", {
       service: GatewayVpcEndpointAwsService.S3,
       subnets: [
         {
-          subnets: this.value.isolatedSubnets,
+          subnets: this.resource.isolatedSubnets,
         },
       ],
     });
