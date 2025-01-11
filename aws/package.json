@@ -5,7 +5,6 @@
     "aws": "bin/sample-node-app.ts"
   },
   "scripts": {
-    "test": "vitest --run",
     "lint": "eslint --fix --config ../eslint.config.mjs",
     "cdk": "cdk"
   },

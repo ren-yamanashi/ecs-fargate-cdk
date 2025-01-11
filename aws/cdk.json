@@ -12,8 +12,7 @@
       "tsconfig.json",
       "package*.json",
       "pnpm-lock.yaml",
-      "node_modules",
-      "__test__"
+      "node_modules"
     ]
   },
   "context": {
